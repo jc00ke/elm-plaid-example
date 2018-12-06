@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+    <meta charset="UTF-8">
+    <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
+    <title>Elm + Plaid</title>
+    <style>
+      /* you can style your program here */
+    </style>
+  </head>
+  <body>
+    <main></main>
+    <script src="/main.js"></script>
+    <script>
+      var app = Elm.Main.init({ node: document.querySelector('main') })
+      // you can use ports and stuff here
+    </script>
+
+
+    <button id="link-button">Link Account</button>
+    <script src="https://cdn.plaid.com/link/v2/stable/link-initialize.js"></script>
+    <script type="text/javascript">
+      function ready(fn) {
+        if (document.attachEvent ? document.readyState === "complete" : document.readyState !== "loading"){
+          fn();
+        } else {
+          document.addEventListener('DOMContentLoaded', fn);
+        }
+      }
+
+      function createPlaidHandler() {
+        return Plaid.create({
+          clientName: 'Plaid Quickstart',
+          env: 'sandbox',
+          // Replace with your public_key from the Dashboard
+          key: 'keykeykey',
+          product: ['auth', 'transactions'],
+          // Optional, use webhooks to get transaction and error updates
+          webhook: 'https://requestb.in',
+          onLoad: function() {
+            // Optional, called when Link loads
+          },
+          onSuccess: function(public_token, metadata) {
+            // public_token = "public-sandbox-5c224a01-8314-4491-a06f..."
+            // metadata = {
+            //  link_session_id: "123-abc",
+            //  institution: {
+            //    name: "Wells Fargo",
+            //    institution_id: "ins_4"
+            //  },
+            //  accounts: [{
+            //    id: "QPO8Jo8vdDHMepg41PBwckXm4KdK1yUdmXOwK",
+            //    name: "Plaid Checking",
+            //    mask: "0000",
+            //    type: "depository",
+            //    subtype: "checking"
+            //  }]
+            // }
+
+            // Send the public_token to your app server.
+            // The metadata object contains info about the institution the
+            // user selected and the account ID or IDs, if the
+            // Select Account view is enabled.
+            console.log(public_token, metadata)
+          },
+          onExit: function(err, metadata) {
+            // The user exited the Link flow.
+            if (err != null) {
+              // The user encountered a Plaid API error prior to exiting.
+            }
+            // metadata contains information about the institution
+            // that the user selected and the most recent API request IDs.
+            // Storing this information can be helpful for support.
+          },
+          onEvent: function(eventName, metadata) {
+            // Optionally capture Link flow events, streamed through
+            // this callback as your users connect an Item to Plaid.
+            // For example:
+            // eventName = "TRANSITION_VIEW"
+            // metadata  = {
+            //   link_session_id: "123-abc",
+            //   mfa_type:        "questions",
+            //   timestamp:       "2017-09-14T14:42:19.350Z",
+            //   view_name:       "MFA",
+            // }
+          }
+        })
+      }
+
+      ready(function() {
+        var link = document.getElementById("link-button")
+        link.onclick = function() {
+          var handler = createPlaidHandler()
+          handler.open()
+        }
+      });
+    </script>
+  </body>
+</html>
