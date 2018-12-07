@@ -1,7 +1,7 @@
 import Browser
 import Html exposing (..)
 import Html.Attributes exposing (..)
-import Html.Events exposing (onInput)
+import Html.Events exposing (onClick)
 import Json.Decode exposing (
   Decoder,
   at,
@@ -12,6 +12,7 @@ import Json.Decode exposing (
   map,
   map2,
   map3,
+  map4,
   map5,
   string)
 
@@ -47,23 +48,18 @@ type alias Institution =
 
 type alias Metadata =
   { linkSessionId : String
+  , publicToken : String
   , institution : Institution
+  , primaryAccount : Account
   , accounts : Accounts
   }
 
 type Accounts = Accounts (List Account)
 
-type alias Item =
-  { publicToken : String
-  , metadata : Metadata
-  }
-
-type Items = Items (List Item)
-
 type alias Model =
-  { name : String
-  , password : String
-  , passwordAgain : String
+  { items : List Metadata
+  , consentToNotify : Bool
+  , consentForTransactions : Bool
   }
 
 
@@ -87,23 +83,18 @@ institution =
 
 metadata : Decoder Metadata
 metadata =
-  map3 Metadata
+  map5 Metadata
   (field "link_session_id" string)
+  (field "public_token" string)
   (field "institution" institution)
+  (field "account" account)
   (field "accounts" (map Accounts (list (lazy (\_ -> account)))))
 
-item : Decoder Item
-item =
-  map2 Item
-  (field "public_token" string)
-  (field "metadata" metadata)
 
-
-init : () -> (List Item, Cmd Msg)
+init : () -> (Model, Cmd Msg)
 init _ =
-  ( []
-  , Cmd.none
-  )
+  ( Model [] True True
+  , Cmd.none )
 
 
 
@@ -111,21 +102,30 @@ init _ =
 
 
 type Msg
-  = Name String
-  | Password String
-  | PasswordAgain String
+  = ToggleConsentToNotify
+  | ToggleConsentForTransactions
 
-update : Msg -> List Item -> (List Item, Cmd Msg)
+update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
-  (model, Cmd.none)
+  case msg of
+    ToggleConsentToNotify ->
+      (
+        { model | consentToNotify = not model.consentToNotify }
+        , Cmd.none
+      )
 
+    ToggleConsentForTransactions ->
+      (
+        { model | consentForTransactions = not model.consentForTransactions }
+        , Cmd.none
+      )
 
 
 
 -- SUBSCRIPTIONS
 
 
-subscriptions : List Item -> Sub Msg
+subscriptions : Model -> Sub Msg
 subscriptions model =
   Sub.none
 
@@ -133,6 +133,17 @@ subscriptions model =
 -- VIEW
 
 
-view : List Item -> Html Msg
+view : Model -> Html Msg
 view model =
   div [] []
+  --fieldset []
+    --[ checkbox ToggleConsentToNotify "Consent to receive SMS messages"
+    --, checkbox ToggleConsentForTransactions "Consent to give us your transaction history"
+    --]
+
+checkbox : msg -> String -> Html msg
+checkbox msg name =
+  label []
+    [ input [ type_ "checkbox", onClick msg ] []
+    , text name
+    ]

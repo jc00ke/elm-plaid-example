@@ -10,11 +10,6 @@
   <body>
     <main></main>
     <script src="/main.js"></script>
-    <script>
-      var app = Elm.Main.init({ node: document.querySelector('main') })
-      // you can use ports and stuff here
-    </script>
-
 
     <button id="link-button">Link Account</button>
     <script src="https://cdn.plaid.com/link/v2/stable/link-initialize.js"></script>
@@ -27,12 +22,21 @@
         }
       }
 
-      function createPlaidHandler() {
+      var BasicIncome = BasicIncome || {}
+      BasicIncome.items = [anItem]
+
+      var app = Elm.Main.init({
+        node: document.querySelector('main'),
+        flags: BasicIncome.items
+      })
+      // you can use ports and stuff here
+
+      function createPlaidHandler(items) {
         return Plaid.create({
           clientName: 'Plaid Quickstart',
           env: 'sandbox',
           // Replace with your public_key from the Dashboard
-          key: 'keykeykey',
+          key: 'key',
           product: ['auth', 'transactions'],
           // Optional, use webhooks to get transaction and error updates
           webhook: 'https://requestb.in',
@@ -40,27 +44,16 @@
             // Optional, called when Link loads
           },
           onSuccess: function(public_token, metadata) {
-            // public_token = "public-sandbox-5c224a01-8314-4491-a06f..."
-            // metadata = {
-            //  link_session_id: "123-abc",
-            //  institution: {
-            //    name: "Wells Fargo",
-            //    institution_id: "ins_4"
-            //  },
-            //  accounts: [{
-            //    id: "QPO8Jo8vdDHMepg41PBwckXm4KdK1yUdmXOwK",
-            //    name: "Plaid Checking",
-            //    mask: "0000",
-            //    type: "depository",
-            //    subtype: "checking"
-            //  }]
-            // }
+            items.push({
+              "public_token": public_token,
+              "metadata": metadata
+            })
 
             // Send the public_token to your app server.
             // The metadata object contains info about the institution the
             // user selected and the account ID or IDs, if the
             // Select Account view is enabled.
-            console.log(public_token, metadata)
+            console.log(public_token, metadata, items)
           },
           onExit: function(err, metadata) {
             // The user exited the Link flow.
@@ -89,7 +82,7 @@
       ready(function() {
         var link = document.getElementById("link-button")
         link.onclick = function() {
-          var handler = createPlaidHandler()
+          var handler = createPlaidHandler(BasicIncome.items)
           handler.open()
         }
       });
