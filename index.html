@@ -11,7 +11,6 @@
     <main></main>
     <script src="/main.js"></script>
 
-    <button id="link-button">Link Account</button>
     <script src="https://cdn.plaid.com/link/v2/stable/link-initialize.js"></script>
     <script type="text/javascript">
       function ready(fn) {
@@ -23,13 +22,17 @@
       }
 
       var BasicIncome = BasicIncome || {}
-      BasicIncome.items = [anItem]
+      BasicIncome.items = []
 
       var app = Elm.Main.init({
         node: document.querySelector('main'),
         flags: BasicIncome.items
       })
       // you can use ports and stuff here
+      app.ports.openPlaidLink.subscribe(function(msg) {
+        var handler = createPlaidHandler(BasicIncome.items)
+        handler.open()
+      })
 
       function createPlaidHandler(items) {
         return Plaid.create({
@@ -78,14 +81,6 @@
           }
         })
       }
-
-      ready(function() {
-        var link = document.getElementById("link-button")
-        link.onclick = function() {
-          var handler = createPlaidHandler(BasicIncome.items)
-          handler.open()
-        }
-      });
     </script>
   </body>
 </html>
