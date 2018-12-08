@@ -40,7 +40,7 @@ init : () -> (Model, Cmd msg)
 init _ =
   ( initialModel, Cmd.none )
 
-port openPlaidLink : String -> Cmd msg
+port openPlaidLink : () -> Cmd msg
 
 
 subscriptions : Model -> Sub Msg
@@ -53,7 +53,6 @@ type Msg
   = OpenPlaidLink
   | ToggleConsentToNotify
   | ToggleConsentForTransactions
-  | Loaded
 
 
 
@@ -63,11 +62,8 @@ type Msg
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
   case msg of
-    Loaded ->
-      ( model, openPlaidLink "Loaded!" )
-
     OpenPlaidLink ->
-      ( model, openPlaidLink "Open!" )
+      ( model, openPlaidLink () )
 
     ToggleConsentToNotify ->
       (
