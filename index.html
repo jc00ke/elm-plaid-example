@@ -4,13 +4,30 @@
     <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
     <title>Elm + Plaid</title>
     <style>
-      /* you can style your program here */
+      html,
+      body {
+        height: 100%;
+      }
+
+      body {
+        display: -ms-flexbox;
+        display: flex;
+        -ms-flex-align: center;
+        align-items: center;
+        padding-top: 40px;
+        padding-bottom: 40px;
+        background-color: #f5f5f5;
+      }
     </style>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.2.1/css/bootstrap.min.css" integrity="sha384-GJzZqFGwb1QTTN6wy59ffF1BuGJpLSa9DkKMp0DgiMDm4iYMj70gZWKYbI706tWS" crossorigin="anonymous">
   </head>
-  <body>
+  <body class="text-center">
     <main></main>
+
     <script src="/main.js"></script>
 
+    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.2.1/js/bootstrap.min.js" integrity="sha384-B0UglyR+jN6CkvvICOB2joaf5I4l3gm9GU6Hc1og6Ls7i6U/mkkaduKaBhlAXv9k" crossorigin="anonymous"></script>
     <script src="https://cdn.plaid.com/link/v2/stable/link-initialize.js"></script>
     <script type="text/javascript">
       function ready(fn) {
@@ -21,66 +38,109 @@
         }
       }
 
-      var BasicIncome = BasicIncome || {}
-      BasicIncome.items = []
-
-      var app = Elm.Main.init({
-        node: document.querySelector('main'),
-        flags: BasicIncome.items
-      })
-      // you can use ports and stuff here
-      app.ports.openPlaidLink.subscribe(function(msg) {
-        var handler = createPlaidHandler(BasicIncome.items)
-        handler.open()
-      })
-
-      function createPlaidHandler(items) {
-        return Plaid.create({
-          clientName: 'Plaid Quickstart',
-          env: 'sandbox',
-          // Replace with your public_key from the Dashboard
-          key: 'key',
-          product: ['auth', 'transactions'],
-          // Optional, use webhooks to get transaction and error updates
-          webhook: 'https://requestb.in',
-          onLoad: function() {
-            // Optional, called when Link loads
-          },
-          onSuccess: function(public_token, metadata) {
-            items.push({
-              "public_token": public_token,
-              "metadata": metadata
-            })
-
-            // Send the public_token to your app server.
-            // The metadata object contains info about the institution the
-            // user selected and the account ID or IDs, if the
-            // Select Account view is enabled.
-            console.log(public_token, metadata, items)
-          },
-          onExit: function(err, metadata) {
-            // The user exited the Link flow.
-            if (err != null) {
-              // The user encountered a Plaid API error prior to exiting.
+      var BasicIncome = {
+        mockHandler: function(products) {
+          var self = this
+          return {
+            products: products,
+            open: function() {
+              console.log(self.metadata)
+              console.log("products: ", this.products)
+              self.app.ports.itemLinked.send({name: "Addie"})
+            },
+            onSuccess: function(public_token, metadata) {
+              console.log("public_token: ", public_token, "products: ", this.products)
             }
-            // metadata contains information about the institution
-            // that the user selected and the most recent API request IDs.
-            // Storing this information can be helpful for support.
-          },
-          onEvent: function(eventName, metadata) {
-            // Optionally capture Link flow events, streamed through
-            // this callback as your users connect an Item to Plaid.
-            // For example:
-            // eventName = "TRANSITION_VIEW"
-            // metadata  = {
-            //   link_session_id: "123-abc",
-            //   mfa_type:        "questions",
-            //   timestamp:       "2017-09-14T14:42:19.350Z",
-            //   view_name:       "MFA",
-            // }
           }
-        })
+        },
+        liveHandler: function(products) {
+          return Plaid.create({
+            clientName: 'Plaid Quickstart',
+            env: 'sandbox',
+            // Replace with your public_key from the Dashboard
+            key: 'keykeykey',
+            product: products,
+            // Optional, use webhooks to get transaction and error updates
+            webhook: 'https://requestb.in',
+            onLoad: function() {
+              // Optional, called when Link loads
+            },
+            onSuccess: function(public_token, metadata) {
+              // Send the public_token to your app server.
+              // The metadata object contains info about the institution the
+              // user selected and the account ID or IDs, if the
+              // Select Account view is enabled.
+              console.log("onSuccess", public_token, metadata)
+            },
+            onExit: function(err, metadata) {
+              // The user exited the Link flow.
+              if (err != null) {
+                // The user encountered a Plaid API error prior to exiting.
+              }
+              console.log("onExit", err, metadata)
+              // metadata contains information about the institution
+              // that the user selected and the most recent API request IDs.
+              // Storing this information can be helpful for support.
+            },
+            onEvent: function(eventName, metadata) {
+              // Optionally capture Link flow events, streamed through
+              // this callback as your users connect an Item to Plaid.
+              // For example:
+              // eventName = "TRANSITION_VIEW"
+              // metadata  = {
+              //   link_session_id: "123-abc",
+              //   mfa_type:        "questions",
+              //   timestamp:       "2017-09-14T14:42:19.350Z",
+              //   view_name:       "MFA",
+              // }
+            }
+          })
+        },
+        metadata: {
+          "institution": {
+            "name": "First Platypus Bank",
+            "institution_id": "ins_109508"
+          },
+          "account": {
+            "id": "ZXq1VoKX7qC1PK4xvl56cdXQM4dgXaigw33kk",
+            "name": "Plaid Checking",
+            "type": "depository",
+            "subtype": "checking",
+            "mask": "0000"
+          },
+          "account_id": "ZXq1VoKX7qC1PK4xvl56cdXQM4dgXaigw33kk",
+          "accounts": [
+            {
+              "id": "ZXq1VoKX7qC1PK4xvl56cdXQM4dgXaigw33kk",
+              "name": "Plaid Checking",
+              "mask": "0000",
+              "type": "depository",
+              "subtype": "checking"
+            },
+            {
+              "id": "LvVBZd7vlVcD95npBx3zTa9V7wad91UP477zV",
+              "name": "Plaid Saving",
+              "mask": "1111",
+              "type": "depository",
+              "subtype": "savings"
+            }
+          ],
+          "link_session_id": "5a010bea-a8d4-4b35-915c-0272bec29caf",
+          "public_token": "public-sandbox-b914fc91-b9fb-4328-bf5b-68e6f18c94ee"
+        },
+        init: function() {
+          var self = this
+          self.app = Elm.Main.init({
+            node: document.querySelector('main')
+          })
+
+          self.app.ports.openPlaidLink.subscribe(function(products) {
+            var handler = self.mockHandler(products)
+            handler.open()
+          })
+        }
       }
+      BasicIncome.init()
     </script>
   </body>
 </html>
