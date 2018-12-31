@@ -50,7 +50,7 @@ initialModel =
     , consentToNotify = True
     , consentForTransactions = False
     , name = ""
-    , stage = PickDepositoryAccount
+    , stage = InformPickTransactions
     }
 
 
@@ -92,7 +92,7 @@ type Msg
 type Stage
     = Start
     | PickDepositoryAccount
-    | Inform_PickTransactions
+    | InformPickTransactions
     | PickTransactionsAccounts
     | Finish
 
@@ -161,6 +161,9 @@ viewFor model =
         PickDepositoryAccount ->
             pickDepositoryAccountView model
 
+        InformPickTransactions ->
+            informPickTransactionsView model
+
         _ ->
             elseView model
 
@@ -194,6 +197,20 @@ pickDepositoryAccountView model =
                         , [ Grid.row [] [ Grid.col [] [ Button.button [ Button.secondary ] [ text "Link another bank" ] ], Grid.col [] [ Button.button [ Button.primary ] [ text "Next" ] ] ] ]
                         ]
                     )
+            ]
+        |> Card.view
+
+
+informPickTransactionsView : Model -> Html Msg
+informPickTransactionsView model =
+    Card.config [ Card.align Text.alignXsCenter ]
+        |> Card.block []
+            [ enrollingText model
+            , Block.text [] [ text "On the next screen, please select which accounts you want to share\n            transaction information with." ]
+            , Block.custom <|
+                Button.button
+                    [ Button.primary, Button.attrs [] ]
+                    [ text "Next" ]
             ]
         |> Card.view
 
