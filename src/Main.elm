@@ -191,8 +191,6 @@ pickDepositoryAccountView model =
                     (List.concat
                         [ [ Grid.row [] [ Grid.col [ Col.xs3 ] [ text "Deposit Into" ], Grid.col [] [] ] ]
                         , institutionRow model
-                        , institutionRow2 model
-                        , institutionRow3 model
                         , [ Grid.row [] [ Grid.col [] [ Button.button [ Button.secondary ] [ text "Link another bank" ] ], Grid.col [] [ Button.button [ Button.primary ] [ text "Next" ] ] ] ]
                         ]
                     )
@@ -231,36 +229,4 @@ institutionRow model =
             , h6 [ class "mask" ] [ text "************3030" ]
             ]
         ]
-    ]
-
-
-institutionRow2 : model -> List (Html Msg)
-institutionRow2 model =
-    [ Grid.row []
-        [ Grid.col []
-            [ h4 [ class "card-title" ] [ text "Platypus Bank" ] ]
-        ]
-    , Grid.row [ Row.leftSm ]
-        [ Grid.col [ Col.xs3 ] [ Radio.radio [ Radio.name "depository" ] "" ]
-        , Grid.col [ Col.textAlign Text.alignXsLeft ]
-            [ h5 [ class "mask" ] [ text "My Checking ************0101" ] ]
-        ]
-    , Grid.row [ Row.leftSm ]
-        [ Grid.col [ Col.xs3 ] [ Radio.radio [ Radio.name "depository" ] "" ]
-        , Grid.col [ Col.textAlign Text.alignXsLeft ]
-            [ h5 [ class "mask" ] [ text "My Savings ************0202" ] ]
-        ]
-    ]
-
-
-institutionRow3 : model -> List (Html Msg)
-institutionRow3 model =
-    [ Grid.row []
-        [ Grid.col []
-            [ h4 [ class "card-title" ] [ text "Platypus Bank" ] ]
-        ]
-    , Grid.row []
-        [ Grid.col [ Col.attrs [ class "mask" ], Col.textAlign Text.alignXsLeft ] [ Radio.radio [ Radio.name "depository" ] "My Checking ************0101" ] ]
-    , Grid.row []
-        [ Grid.col [ Col.attrs [ class "mask" ], Col.textAlign Text.alignXsLeft ] [ Radio.radio [ Radio.name "depository" ] "My Savings ************0202" ] ]
     ]
