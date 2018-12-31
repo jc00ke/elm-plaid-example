@@ -5,6 +5,7 @@ import Bootstrap.Button as Button
 import Bootstrap.CDN as CDN
 import Bootstrap.Card as Card
 import Bootstrap.Card.Block as Block
+import Bootstrap.Form.Checkbox as Checkbox
 import Bootstrap.Form.Radio as Radio
 import Bootstrap.Grid as Grid
 import Bootstrap.Grid.Col as Col
@@ -50,7 +51,7 @@ initialModel =
     , consentToNotify = True
     , consentForTransactions = False
     , name = ""
-    , stage = InformPickTransactions
+    , stage = PickTransactionsAccounts
     }
 
 
@@ -164,6 +165,9 @@ viewFor model =
         InformPickTransactions ->
             informPickTransactionsView model
 
+        PickTransactionsAccounts ->
+            pickTransactionsAccountsView model
+
         _ ->
             elseView model
 
@@ -193,7 +197,7 @@ pickDepositoryAccountView model =
                 Grid.container []
                     (List.concat
                         [ [ Grid.row [] [ Grid.col [ Col.xs3 ] [ text "Deposit Into" ], Grid.col [] [] ] ]
-                        , institutionRow model
+                        , institutionRowForDepositorySelection model
                         , [ Grid.row [] [ Grid.col [] [ Button.button [ Button.secondary ] [ text "Link another bank" ] ], Grid.col [] [ Button.button [ Button.primary ] [ text "Next" ] ] ] ]
                         ]
                     )
@@ -215,6 +219,23 @@ informPickTransactionsView model =
         |> Card.view
 
 
+pickTransactionsAccountsView : Model -> Html Msg
+pickTransactionsAccountsView model =
+    Card.config [ Card.align Text.alignXsCenter ]
+        |> Card.block []
+            [ enrollingText model
+            , Block.custom <|
+                Grid.container []
+                    (List.concat
+                        [ [ Grid.row [] [ Grid.col [ Col.lg, Col.textAlign Text.alignXsRight ] [ text "Transactions" ] ] ]
+                        , institutionRowForTransactionSelection model
+                        , [ Grid.row [] [ Grid.col [] [ Button.button [ Button.primary ] [ text "Finish" ] ] ] ]
+                        ]
+                    )
+            ]
+        |> Card.view
+
+
 elseView : Model -> Html Msg
 elseView model =
     div []
@@ -226,8 +247,8 @@ enrollingText model =
     Block.titleH3 [] [ "Enrolling " ++ model.name |> text ]
 
 
-institutionRow : model -> List (Html Msg)
-institutionRow model =
+institutionRowForDepositorySelection : model -> List (Html Msg)
+institutionRowForDepositorySelection model =
     [ Grid.row []
         [ Grid.col []
             [ h4 [ class "card-title" ] [ text "Platypus Bank" ] ]
@@ -245,5 +266,30 @@ institutionRow model =
             [ h5 [] [ text "My Savings" ]
             , h6 [ class "mask" ] [ text "************3030" ]
             ]
+        ]
+    ]
+
+
+institutionRowForTransactionSelection : model -> List (Html Msg)
+institutionRowForTransactionSelection model =
+    [ Grid.row []
+        [ Grid.col []
+            [ h4 [ class "card-title" ] [ text "Platypus Bank" ] ]
+        ]
+    , Grid.row [ Row.leftSm ]
+        [ Grid.col [ Col.xs3 ] [ text "*" ]
+        , Grid.col [ Col.textAlign Text.alignXsLeft ]
+            [ h5 [] [ text "My Checking" ]
+            , h6 [ class "mask" ] [ text "************0102" ]
+            ]
+        , Grid.col [ Col.xs3 ] [ Checkbox.checkbox [ Checkbox.id "transactions" ] "" ]
+        ]
+    , Grid.row [ Row.leftSm ]
+        [ Grid.col [ Col.xs3 ] []
+        , Grid.col [ Col.textAlign Text.alignXsLeft ]
+            [ h5 [] [ text "My Savings" ]
+            , h6 [ class "mask" ] [ text "************3030" ]
+            ]
+        , Grid.col [ Col.xs3 ] [ Checkbox.checkbox [ Checkbox.id "transactions" ] "" ]
         ]
     ]
