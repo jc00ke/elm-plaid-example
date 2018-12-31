@@ -1,7 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
-    <meta charset="UTF-8">
-    <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
+    <meta content="text/html; charset=utf-8" http-equiv="Content-Type" />
     <title>Elm + Plaid</title>
     <style>
       html,
@@ -23,7 +22,6 @@
   </head>
   <body class="text-center">
     <main></main>
-
     <script src="/main.js"></script>
 
     <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
@@ -46,7 +44,7 @@
             open: function() {
               console.log(self.metadata)
               console.log("products: ", this.products)
-              self.app.ports.itemLinked.send({name: "Addie"})
+              self.app.ports.itemLinked.send(self.metadata)
             },
             onSuccess: function(public_token, metadata) {
               console.log("public_token: ", public_token, "products: ", this.products)
@@ -128,10 +126,11 @@
           "link_session_id": "5a010bea-a8d4-4b35-915c-0272bec29caf",
           "public_token": "public-sandbox-b914fc91-b9fb-4328-bf5b-68e6f18c94ee"
         },
-        init: function() {
+        init: function(options) {
           var self = this
           self.app = Elm.Main.init({
-            node: document.querySelector('main')
+            node: document.querySelector('main'),
+            flags: options.name
           })
 
           self.app.ports.openPlaidLink.subscribe(function(products) {
@@ -140,7 +139,7 @@
           })
         }
       }
-      BasicIncome.init()
+      BasicIncome.init({name: "Jesse Cooke"})
     </script>
   </body>
 </html>
