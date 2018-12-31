@@ -1,10 +1,11 @@
-port module Main exposing (Model, Msg(..), checkbox, init, initialModel, itemLinked, main, openPlaidLink, subscriptions, update, userDecoder, view)
+port module Main exposing (Model, Msg(..), init, initialModel, itemLinked, main, openPlaidLink, subscriptions, update, userDecoder, view)
 
 import Bootstrap.Alert as Alert
 import Bootstrap.Button as Button
 import Bootstrap.CDN as CDN
 import Bootstrap.Card as Card
 import Bootstrap.Card.Block as Block
+import Bootstrap.Form.Radio as Radio
 import Bootstrap.Grid as Grid
 import Bootstrap.Grid.Col as Col
 import Bootstrap.Grid.Row as Row
@@ -187,33 +188,14 @@ pickDepositoryAccountView model =
             [ enrollingText model
             , Block.custom <|
                 Grid.container []
-                    [ Grid.row []
-                        [ Grid.col [ Col.xs3 ] [ text "Deposit Into" ]
-                        , Grid.col [] []
+                    (List.concat
+                        [ [ Grid.row [] [ Grid.col [ Col.xs3 ] [ text "Deposit Into" ], Grid.col [] [] ] ]
+                        , institutionRow model
+                        , institutionRow2 model
+                        , institutionRow3 model
+                        , [ Grid.row [] [ Grid.col [] [ Button.button [ Button.secondary ] [ text "Link another bank" ] ], Grid.col [] [ Button.button [ Button.primary ] [ text "Next" ] ] ] ]
                         ]
-                    , Grid.row []
-                        [ Grid.col []
-                            [ h4 [ class "card-title" ] [ text "Platypus Bank" ] ]
-                        ]
-                    , Grid.row [ Row.leftSm ]
-                        [ Grid.col [ Col.xs3 ] [ text "[]" ]
-                        , Grid.col [ Col.textAlign Text.alignXsLeft ]
-                            [ h5 [] [ text "My Checking" ]
-                            , h6 [ class "mask" ] [ text "************0102" ]
-                            ]
-                        ]
-                    , Grid.row [ Row.leftSm ]
-                        [ Grid.col [ Col.xs3 ] [ text "[]" ]
-                        , Grid.col [ Col.textAlign Text.alignXsLeft ]
-                            [ h5 [] [ text "My Savings" ]
-                            , h6 [ class "mask" ] [ text "************3030" ]
-                            ]
-                        ]
-                    , Grid.row []
-                        [ Grid.col [] [ Button.button [ Button.secondary ] [ text "Link another bank" ] ]
-                        , Grid.col [] [ Button.button [ Button.primary ] [ text "Next" ] ]
-                        ]
-                    ]
+                    )
             ]
         |> Card.view
 
@@ -229,9 +211,56 @@ enrollingText model =
     Block.titleH3 [] [ "Enrolling " ++ model.name |> text ]
 
 
-checkbox : msg -> String -> Html msg
-checkbox msg name =
-    label []
-        [ input [ type_ "checkbox", onClick msg ] []
-        , text name
+institutionRow : model -> List (Html Msg)
+institutionRow model =
+    [ Grid.row []
+        [ Grid.col []
+            [ h4 [ class "card-title" ] [ text "Platypus Bank" ] ]
         ]
+    , Grid.row [ Row.leftSm ]
+        [ Grid.col [ Col.xs3 ] [ Radio.radio [ Radio.name "depository" ] "" ]
+        , Grid.col [ Col.textAlign Text.alignXsLeft ]
+            [ h5 [] [ text "My Checking" ]
+            , h6 [ class "mask" ] [ text "************0102" ]
+            ]
+        ]
+    , Grid.row [ Row.leftSm ]
+        [ Grid.col [ Col.xs3 ] [ Radio.radio [ Radio.name "depository" ] "" ]
+        , Grid.col [ Col.textAlign Text.alignXsLeft ]
+            [ h5 [] [ text "My Savings" ]
+            , h6 [ class "mask" ] [ text "************3030" ]
+            ]
+        ]
+    ]
+
+
+institutionRow2 : model -> List (Html Msg)
+institutionRow2 model =
+    [ Grid.row []
+        [ Grid.col []
+            [ h4 [ class "card-title" ] [ text "Platypus Bank" ] ]
+        ]
+    , Grid.row [ Row.leftSm ]
+        [ Grid.col [ Col.xs3 ] [ Radio.radio [ Radio.name "depository" ] "" ]
+        , Grid.col [ Col.textAlign Text.alignXsLeft ]
+            [ h5 [ class "mask" ] [ text "My Checking ************0101" ] ]
+        ]
+    , Grid.row [ Row.leftSm ]
+        [ Grid.col [ Col.xs3 ] [ Radio.radio [ Radio.name "depository" ] "" ]
+        , Grid.col [ Col.textAlign Text.alignXsLeft ]
+            [ h5 [ class "mask" ] [ text "My Savings ************0202" ] ]
+        ]
+    ]
+
+
+institutionRow3 : model -> List (Html Msg)
+institutionRow3 model =
+    [ Grid.row []
+        [ Grid.col []
+            [ h4 [ class "card-title" ] [ text "Platypus Bank" ] ]
+        ]
+    , Grid.row []
+        [ Grid.col [ Col.attrs [ class "mask" ], Col.textAlign Text.alignXsLeft ] [ Radio.radio [ Radio.name "depository" ] "My Checking ************0101" ] ]
+    , Grid.row []
+        [ Grid.col [ Col.attrs [ class "mask" ], Col.textAlign Text.alignXsLeft ] [ Radio.radio [ Radio.name "depository" ] "My Savings ************0202" ] ]
+    ]
