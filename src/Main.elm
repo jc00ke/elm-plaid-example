@@ -51,7 +51,7 @@ initialModel =
     , consentToNotify = True
     , consentForTransactions = False
     , name = ""
-    , stage = PickTransactionsAccounts
+    , stage = Finish
     }
 
 
@@ -168,8 +168,8 @@ viewFor model =
         PickTransactionsAccounts ->
             pickTransactionsAccountsView model
 
-        _ ->
-            elseView model
+        Finish ->
+            finishView model
 
 
 startView : Model -> Html Msg
@@ -236,10 +236,14 @@ pickTransactionsAccountsView model =
         |> Card.view
 
 
-elseView : Model -> Html Msg
-elseView model =
+finishView : Model -> Html Msg
+finishView model =
     div []
-        [ Alert.simpleDanger [] [ text "IMPLEMENT" ] ]
+        [ Alert.simpleInfo []
+            [ Alert.h4 [] [ text "Thank you for linking your accounts." ]
+            , text "Please hand the device back to the associate"
+            ]
+        ]
 
 
 enrollingText : Model -> Block.Item Msg
