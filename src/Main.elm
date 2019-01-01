@@ -51,7 +51,7 @@ initialModel =
     , consentToNotify = True
     , consentForTransactions = False
     , name = ""
-    , stage = Finish
+    , stage = Start
     }
 
 
@@ -210,7 +210,7 @@ informPickTransactionsView model =
     Card.config [ Card.align Text.alignXsCenter ]
         |> Card.block []
             [ enrollingText model
-            , Block.text [] [ text "On the next screen, please select which accounts you want to share\n            transaction information with." ]
+            , Block.text [] [ text "On the next screen, please select which accounts you want to share\ntransaction information with." ]
             , Block.custom <|
                 Button.button
                     [ Button.primary, Button.attrs [] ]
