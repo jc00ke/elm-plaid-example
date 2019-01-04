@@ -42,6 +42,7 @@ type alias Model =
     , consentForTransactions : Bool
     , name : String
     , stage : Stage
+    , depositInto : String
     }
 
 
@@ -52,6 +53,7 @@ initialModel =
     , consentForTransactions = False
     , name = ""
     , stage = Start
+    , depositInto = ""
     }
 
 
@@ -82,6 +84,7 @@ subscriptions _ =
 type Msg
     = OpenPlaidLink (List Product)
     | GotItem (Result D.Error Item)
+    | DepositInto String
 
 
 
@@ -287,6 +290,9 @@ update msg model =
         OpenPlaidLink products ->
             ( model, openPlaidLink (encodeProducts [ Auth, Transactions ]) )
 
+        DepositInto accountId ->
+            ( { model | depositInto = accountId }, Cmd.none )
+
 
 
 -- VIEW
@@ -348,7 +354,13 @@ pickDepositoryAccountView model =
                     (List.concat
                         [ [ Grid.row [] [ Grid.col [ Col.xs3 ] [ text "Deposit Into" ], Grid.col [] [] ] ]
                         , institutionRowsForDepositorySelection model.items
-                        , [ Grid.row [] [ Grid.col [] [ Button.button [ Button.secondary ] [ text "Link another bank" ] ], Grid.col [] [ Button.button [ Button.primary ] [ text "Next" ] ] ] ]
+                        , [ Grid.row []
+                                [ Grid.col []
+                                    [ Button.button [ Button.secondary, Button.onClick <| OpenPlaidLink [ Transactions ] ] [ text "Link another bank" ]
+                                    ]
+                                , Grid.col [] [ Button.button [ Button.primary, Button.disabled True ] [ text "Next" ] ]
+                                ]
+                          ]
                         ]
                     )
             ]
@@ -413,11 +425,7 @@ institutionRowForDepositorySelection item =
             accountRowsForDepositorySelection item.accounts
     in
     List.concat
-        [ [ Grid.row []
-                [ Grid.col []
-                    [ h4 [ class "card-title" ] [ text item.institution.name ] ]
-                ]
-          ]
+        [ [ Grid.row [] [ Grid.col [] [ h4 [ class "card-title" ] [ text item.institution.name ] ] ] ]
         , rows
         ]
 
@@ -434,7 +442,7 @@ accountRowsForDepositorySelection accounts =
 accountRowForDepositorySelection : Account -> List (Html Msg)
 accountRowForDepositorySelection account =
     [ Grid.row [ Row.leftSm ]
-        [ Grid.col [ Col.xs3 ] [ Radio.radio [ Radio.name "depository" ] "" ]
+        [ Grid.col [ Col.xs3 ] [ Radio.radio [ Radio.name "depository", Radio.onClick (DepositInto account.id) ] "" ]
         , Grid.col [ Col.textAlign Text.alignXsLeft ]
             [ h5 [] [ text account.name ]
             , h6 [ class "mask" ] [ text <| "************" ++ account.mask ]
