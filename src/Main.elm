@@ -204,7 +204,7 @@ accountsDecoder =
 type alias Account =
     { name : String
     , id : String
-    , theType : AccountType
+    , type_ : AccountType
     , subType : AccountSubType
     , mask : String
     }
@@ -434,7 +434,7 @@ accountRowsForDepositorySelection : List Account -> List (Html Msg)
 accountRowsForDepositorySelection accounts =
     let
         depositoryAccounts =
-            List.filter (\account -> account.theType == Depository) accounts
+            List.filter (\account -> account.type_ == Depository) accounts
     in
     List.concatMap accountRowForDepositorySelection depositoryAccounts
 
