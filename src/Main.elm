@@ -37,7 +37,7 @@ main =
 
 
 type alias Model =
-    { items : List String
+    { items : List Item
     , consentToNotify : Bool
     , consentForTransactions : Bool
     , name : String
@@ -76,14 +76,14 @@ port itemLinked : (E.Value -> msg) -> Sub msg
 
 subscriptions : Model -> Sub Msg
 subscriptions _ =
-    itemLinked (D.decodeValue userDecoder >> GotItem)
+    itemLinked (D.decodeValue itemDecoder >> GotItem)
 
 
 type Msg
     = OpenPlaidLink
     | ToggleConsentToNotify
     | ToggleConsentForTransactions
-    | GotItem (Result D.Error String)
+    | GotItem (Result D.Error Item)
 
 
 
@@ -107,6 +107,65 @@ userDecoder =
     D.field "name" D.string
 
 
+type Accounts
+    = Accounts (List Account)
+
+
+accountsDecoder : Decoder (List Account)
+accountsDecoder =
+    D.list accountDecoder
+
+
+type alias Account =
+    { name : String
+    , id : String
+    , aType : String
+    , subtype : String
+    , mask : String
+    }
+
+
+accountDecoder : Decoder Account
+accountDecoder =
+    D.map5
+        Account
+        (D.at [ "name" ] D.string)
+        (D.at [ "id" ] D.string)
+        (D.at [ "type" ] D.string)
+        (D.at [ "subtype" ] D.string)
+        (D.at [ "mask" ] D.string)
+
+
+type alias Institution =
+    { name : String
+    , id : String
+    }
+
+
+institutionDecoder : Decoder Institution
+institutionDecoder =
+    D.map2
+        Institution
+        (D.at [ "name" ] D.string)
+        (D.at [ "institution_id" ] D.string)
+
+
+type alias Item =
+    { public_token : String
+    , institution : Institution
+    , accounts : List Account
+    }
+
+
+itemDecoder : Decoder Item
+itemDecoder =
+    D.map3
+        Item
+        (D.field "public_token" D.string)
+        (D.field "institution" institutionDecoder)
+        (D.field "accounts" accountsDecoder)
+
+
 
 -- UPDATE
 
@@ -115,9 +174,9 @@ update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         GotItem item ->
-            case Result.toMaybe item of
+            case Result.toMaybe (Debug.log "item" item) of
                 Nothing ->
-                    ( model, Cmd.none )
+                    ( Debug.log "Nothing" model, Cmd.none )
 
                 Just a ->
                     ( Debug.log "item" { model | items = List.append model.items [ a ] }
