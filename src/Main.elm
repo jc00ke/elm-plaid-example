@@ -83,6 +83,8 @@ type Msg
     = OpenPlaidLink (List Product)
     | GotItem (Result D.Error Item)
     | DepositInto String
+    | ShowInformPickTransactions
+    | ShowPickTransactionsAccounts
 
 
 
@@ -286,10 +288,28 @@ update msg model =
                     )
 
         OpenPlaidLink products ->
-            ( model, openPlaidLink (encodeProducts [ Auth, Transactions ]) )
+            ( { model | nextEnabled = False }, openPlaidLink (encodeProducts [ Auth, Transactions ]) )
 
         DepositInto accountId ->
-            ( { model | depositInto = accountId }, Cmd.none )
+            ( { model | depositInto = accountId, nextEnabled = True }, Cmd.none )
+
+        ShowInformPickTransactions ->
+            let
+                stage =
+                    nextStage model.stage
+            in
+            ( Debug.log "item" { model | stage = stage }
+            , Cmd.none
+            )
+
+        ShowPickTransactionsAccounts ->
+            let
+                stage =
+                    nextStage model.stage
+            in
+            ( Debug.log "item" { model | stage = stage }
+            , Cmd.none
+            )
 
 
 
@@ -354,9 +374,8 @@ pickDepositoryAccountView model =
                         , institutionRowsForDepositorySelection model.items
                         , [ Grid.row []
                                 [ Grid.col []
-                                    [ Button.button [ Button.secondary, Button.onClick <| OpenPlaidLink [ Transactions ] ] [ text "Link another bank" ]
-                                    ]
-                                , Grid.col [] [ Button.button [ Button.primary, Button.disabled True ] [ text "Next" ] ]
+                                    [ Button.button [ Button.secondary, Button.onClick <| OpenPlaidLink [ Transactions ] ] [ text "Link another bank" ] ]
+                                , Grid.col [] [ Button.button [ Button.primary, Button.disabled (not model.nextEnabled), Button.onClick ShowInformPickTransactions ] [ text "Next" ] ]
                                 ]
                           ]
                         ]
@@ -373,7 +392,7 @@ informPickTransactionsView model =
             , Block.text [] [ text "On the next screen, please select which accounts you want to share\ntransaction information with." ]
             , Block.custom <|
                 Button.button
-                    [ Button.primary, Button.attrs [] ]
+                    [ Button.primary, Button.attrs [ onClick ShowPickTransactionsAccounts ] ]
                     [ text "Next" ]
             ]
         |> Card.view
