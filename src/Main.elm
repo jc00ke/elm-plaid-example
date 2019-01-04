@@ -81,8 +81,6 @@ subscriptions _ =
 
 type Msg
     = OpenPlaidLink
-    | ToggleConsentToNotify
-    | ToggleConsentForTransactions
     | GotItem (Result D.Error Item)
 
 
@@ -260,16 +258,6 @@ update msg model =
 
         OpenPlaidLink ->
             ( model, openPlaidLink (E.list E.string [ "auth", "transactions" ]) )
-
-        ToggleConsentToNotify ->
-            ( { model | consentToNotify = not model.consentToNotify }
-            , Cmd.none
-            )
-
-        ToggleConsentForTransactions ->
-            ( { model | consentForTransactions = not model.consentForTransactions }
-            , Cmd.none
-            )
 
 
 
