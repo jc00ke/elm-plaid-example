@@ -460,7 +460,7 @@ accountRowForDepositorySelection : Account -> Model -> List (Html Msg)
 accountRowForDepositorySelection account model =
     let
         chosen =
-            account.id == model.depositInto
+            isDepositAccount account model
 
         class_ =
             if chosen then
@@ -505,7 +505,7 @@ accountRowForTransactionSelection : Account -> Model -> List (Html Msg)
 accountRowForTransactionSelection account model =
     let
         chosen =
-            account.id == model.depositInto
+            isDepositAccount account model
 
         marker =
             if chosen then
@@ -535,6 +535,11 @@ accountRowForTransactionSelection account model =
 defaultRowClasses : String
 defaultRowClasses =
     "m-2 p-2"
+
+
+isDepositAccount : Account -> Model -> Bool
+isDepositAccount account model =
+    account.id == model.depositInto
 
 
 nextStage : Stage -> Stage
