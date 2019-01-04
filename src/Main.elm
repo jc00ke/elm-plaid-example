@@ -80,7 +80,7 @@ subscriptions _ =
 
 
 type Msg
-    = OpenPlaidLink
+    = OpenPlaidLink (List Product)
     | GotItem (Result D.Error Item)
 
 
@@ -97,7 +97,16 @@ type Stage
 
 
 
--- DECODERS
+-- TYPES
+
+
+type Product
+    = Auth
+    | Transactions
+
+
+
+-- DECODERS & TYPES
 
 
 userDecoder : Decoder String
@@ -239,6 +248,21 @@ itemDecoder =
         (D.field "accounts" accountsDecoder)
 
 
+encodeProduct : Product -> E.Value
+encodeProduct product =
+    case product of
+        Auth ->
+            E.string "auth"
+
+        Transactions ->
+            E.string "transactions"
+
+
+encodeProducts : List Product -> E.Value
+encodeProducts products =
+    E.list encodeProduct products
+
+
 
 -- UPDATE
 
@@ -247,7 +271,7 @@ update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         GotItem item ->
-            case Result.toMaybe (Debug.log "item" item) of
+            case Result.toMaybe item of
                 Nothing ->
                     ( Debug.log "Nothing" model, Cmd.none )
 
@@ -256,8 +280,8 @@ update msg model =
                     , Cmd.none
                     )
 
-        OpenPlaidLink ->
-            ( model, openPlaidLink (E.list E.string [ "auth", "transactions" ]) )
+        OpenPlaidLink products ->
+            ( model, openPlaidLink (encodeProducts [ Auth, Transactions ]) )
 
 
 
@@ -303,7 +327,7 @@ startView model =
             , Block.custom <|
                 Button.button
                     [ Button.primary
-                    , Button.attrs [ onClick <| OpenPlaidLink ]
+                    , Button.attrs [ onClick <| OpenPlaidLink [ Auth, Transactions ] ]
                     ]
                     [ text "Get Started" ]
             ]
