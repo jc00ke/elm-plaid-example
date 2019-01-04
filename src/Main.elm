@@ -276,7 +276,11 @@ update msg model =
                     ( Debug.log "Nothing" model, Cmd.none )
 
                 Just a ->
-                    ( Debug.log "item" { model | items = List.append model.items [ a ] }
+                    let
+                        stage =
+                            nextStage model.stage
+                    in
+                    ( Debug.log "item" { model | items = List.append model.items [ a ], stage = stage }
                     , Cmd.none
                     )
 
@@ -443,3 +447,22 @@ institutionRowForTransactionSelection model =
         , Grid.col [ Col.xs3 ] [ Checkbox.checkbox [ Checkbox.id "transactions" ] "" ]
         ]
     ]
+
+
+nextStage : Stage -> Stage
+nextStage stage =
+    case stage of
+        Start ->
+            PickDepositoryAccount
+
+        PickDepositoryAccount ->
+            InformPickTransactions
+
+        InformPickTransactions ->
+            PickTransactionsAccounts
+
+        PickTransactionsAccounts ->
+            Finish
+
+        Finish ->
+            Finish
