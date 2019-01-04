@@ -38,22 +38,20 @@ main =
 
 type alias Model =
     { items : List Item
-    , consentToNotify : Bool
-    , consentForTransactions : Bool
     , name : String
     , stage : Stage
     , depositInto : String
+    , nextEnabled : Bool
     }
 
 
 initialModel : Model
 initialModel =
     { items = []
-    , consentToNotify = True
-    , consentForTransactions = False
     , name = ""
     , stage = Start
     , depositInto = ""
+    , nextEnabled = False
     }
 
 
