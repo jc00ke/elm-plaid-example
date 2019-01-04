@@ -371,7 +371,7 @@ pickDepositoryAccountView model =
                 Grid.container []
                     (List.concat
                         [ [ Grid.row [] [ Grid.col [ Col.xs3 ] [ text "Deposit Into" ], Grid.col [] [] ] ]
-                        , institutionRowsForDepositorySelection model.items
+                        , institutionRowsForDepositorySelection model
                         , [ Grid.row []
                                 [ Grid.col []
                                     [ Button.button [ Button.secondary, Button.onClick <| OpenPlaidLink [ Transactions ] ] [ text "Link another bank" ] ]
@@ -430,16 +430,16 @@ enrollingText model =
     Block.titleH3 [] [ "Enrolling " ++ model.name |> text ]
 
 
-institutionRowsForDepositorySelection : List Item -> List (Html Msg)
-institutionRowsForDepositorySelection items =
-    List.concatMap institutionRowForDepositorySelection items
+institutionRowsForDepositorySelection : Model -> List (Html Msg)
+institutionRowsForDepositorySelection model =
+    List.concatMap (\item -> institutionRowForDepositorySelection item model) model.items
 
 
-institutionRowForDepositorySelection : Item -> List (Html Msg)
-institutionRowForDepositorySelection item =
+institutionRowForDepositorySelection : Item -> Model -> List (Html Msg)
+institutionRowForDepositorySelection item model =
     let
         rows =
-            accountRowsForDepositorySelection item.accounts
+            accountRowsForDepositorySelection item.accounts model
     in
     List.concat
         [ [ Grid.row [] [ Grid.col [] [ h4 [ class "card-title" ] [ text item.institution.name ] ] ] ]
@@ -447,21 +447,32 @@ institutionRowForDepositorySelection item =
         ]
 
 
-accountRowsForDepositorySelection : List Account -> List (Html Msg)
-accountRowsForDepositorySelection accounts =
+accountRowsForDepositorySelection : List Account -> Model -> List (Html Msg)
+accountRowsForDepositorySelection accounts model =
     let
         depositoryAccounts =
             List.filter (\account -> account.type_ == Depository) accounts
     in
-    List.concatMap accountRowForDepositorySelection depositoryAccounts
+    List.concatMap (\account -> accountRowForDepositorySelection account model) depositoryAccounts
 
 
-accountRowForDepositorySelection : Account -> List (Html Msg)
-accountRowForDepositorySelection account =
-    [ Grid.row [ Row.leftSm ]
+accountRowForDepositorySelection : Account -> Model -> List (Html Msg)
+accountRowForDepositorySelection account model =
+    let
+        chosen =
+            account.id == model.depositInto
+
+        class_ =
+            if chosen then
+                "bg-light rounded shadow " ++ defaultRowClasses
+
+            else
+                defaultRowClasses
+    in
+    [ Grid.row [ Row.leftSm, Row.attrs [ class class_, onClick (DepositInto account.id) ] ]
         [ Grid.col [ Col.xs3 ] [ Radio.radio [ Radio.name "depository", Radio.onClick (DepositInto account.id) ] "" ]
         , Grid.col [ Col.textAlign Text.alignXsLeft ]
-            [ h5 [] [ text account.name ]
+            [ h5 [ onClick (DepositInto account.id) ] [ text account.name ]
             , h6 [ class "mask" ] [ text <| "************" ++ account.mask ]
             ]
         ]
@@ -492,8 +503,26 @@ accountRowsForTransactionSelection accounts model =
 
 accountRowForTransactionSelection : Account -> Model -> List (Html Msg)
 accountRowForTransactionSelection account model =
-    [ Grid.row [ Row.leftSm ]
-        [ Grid.col [ Col.xs3 ] [ text <| markerForDepositAccount account model ]
+    let
+        chosen =
+            account.id == model.depositInto
+
+        marker =
+            if chosen then
+                "depositing into"
+
+            else
+                ""
+
+        class_ =
+            if chosen then
+                "bg-light rounded shadow " ++ defaultRowClasses
+
+            else
+                defaultRowClasses
+    in
+    [ Grid.row [ Row.leftSm, Row.attrs [ class class_ ] ]
+        [ Grid.col [ Col.xs3 ] [ text <| marker ]
         , Grid.col [ Col.textAlign Text.alignXsLeft ]
             [ h5 [] [ text account.name ]
             , h6 [ class "mask" ] [ text <| "************" ++ account.mask ]
@@ -503,13 +532,9 @@ accountRowForTransactionSelection account model =
     ]
 
 
-markerForDepositAccount : Account -> Model -> String
-markerForDepositAccount account model =
-    if account.id == model.depositInto then
-        "*"
-
-    else
-        ""
+defaultRowClasses : String
+defaultRowClasses =
+    "m-2 p-2"
 
 
 nextStage : Stage -> Stage
