@@ -407,7 +407,7 @@ pickTransactionsAccountsView model =
                 Grid.container []
                     (List.concat
                         [ [ Grid.row [] [ Grid.col [ Col.lg, Col.textAlign Text.alignXsRight ] [ text "Transactions" ] ] ]
-                        , institutionRowForTransactionSelection model
+                        , institutionRowsForTransactionSelection model
                         , [ Grid.row [] [ Grid.col [] [ Button.button [ Button.primary ] [ text "Finish" ] ] ] ]
                         ]
                     )
@@ -468,29 +468,48 @@ accountRowForDepositorySelection account =
     ]
 
 
-institutionRowForTransactionSelection : model -> List (Html Msg)
-institutionRowForTransactionSelection model =
-    [ Grid.row []
-        [ Grid.col []
-            [ h4 [ class "card-title" ] [ text "Platypus Bank" ] ]
+institutionRowsForTransactionSelection : Model -> List (Html Msg)
+institutionRowsForTransactionSelection model =
+    List.concatMap (\item -> institutionRowForTransactionSelection item model) model.items
+
+
+institutionRowForTransactionSelection : Item -> Model -> List (Html Msg)
+institutionRowForTransactionSelection item model =
+    let
+        rows =
+            accountRowsForTransactionSelection item.accounts model
+    in
+    List.concat
+        [ [ Grid.row [] [ Grid.col [] [ h4 [ class "card-title" ] [ text item.institution.name ] ] ] ]
+        , rows
         ]
-    , Grid.row [ Row.leftSm ]
-        [ Grid.col [ Col.xs3 ] [ text "*" ]
+
+
+accountRowsForTransactionSelection : List Account -> Model -> List (Html Msg)
+accountRowsForTransactionSelection accounts model =
+    List.concatMap (\account -> accountRowForTransactionSelection account model) accounts
+
+
+accountRowForTransactionSelection : Account -> Model -> List (Html Msg)
+accountRowForTransactionSelection account model =
+    [ Grid.row [ Row.leftSm ]
+        [ Grid.col [ Col.xs3 ] [ text <| markerForDepositAccount account model ]
         , Grid.col [ Col.textAlign Text.alignXsLeft ]
-            [ h5 [] [ text "My Checking" ]
-            , h6 [ class "mask" ] [ text "************0102" ]
-            ]
-        , Grid.col [ Col.xs3 ] [ Checkbox.checkbox [ Checkbox.id "transactions" ] "" ]
-        ]
-    , Grid.row [ Row.leftSm ]
-        [ Grid.col [ Col.xs3 ] []
-        , Grid.col [ Col.textAlign Text.alignXsLeft ]
-            [ h5 [] [ text "My Savings" ]
-            , h6 [ class "mask" ] [ text "************3030" ]
+            [ h5 [] [ text account.name ]
+            , h6 [ class "mask" ] [ text <| "************" ++ account.mask ]
             ]
         , Grid.col [ Col.xs3 ] [ Checkbox.checkbox [ Checkbox.id "transactions" ] "" ]
         ]
     ]
+
+
+markerForDepositAccount : Account -> Model -> String
+markerForDepositAccount account model =
+    if account.id == model.depositInto then
+        "*"
+
+    else
+        ""
 
 
 nextStage : Stage -> Stage
