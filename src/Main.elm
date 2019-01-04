@@ -107,6 +107,81 @@ userDecoder =
     D.field "name" D.string
 
 
+type AccountType
+    = Depository
+    | Credit
+    | Brokerage
+    | Loan
+    | OtherType
+
+
+accountTypeDecoder : Decoder AccountType
+accountTypeDecoder =
+    D.string
+        |> D.andThen
+            (\str ->
+                case str of
+                    "depository" ->
+                        D.succeed Depository
+
+                    "credit" ->
+                        D.succeed Credit
+
+                    "brokerage" ->
+                        D.succeed Brokerage
+
+                    "loan" ->
+                        D.succeed Loan
+
+                    other ->
+                        D.succeed OtherType
+            )
+
+
+type AccountSubType
+    = CD
+    | Checking
+    | Savings
+    | MoneyMarket
+    | Paypal
+    | Prepaid
+    | CreditCard
+    | Rewards
+    | OtherSubType
+
+
+accountSubTypeDecoder : Decoder AccountSubType
+accountSubTypeDecoder =
+    D.string
+        |> D.andThen
+            (\str ->
+                case str of
+                    "cd" ->
+                        D.succeed CD
+
+                    "checking" ->
+                        D.succeed Checking
+
+                    "savings" ->
+                        D.succeed Savings
+
+                    "money market" ->
+                        D.succeed MoneyMarket
+
+                    "paypal" ->
+                        D.succeed Paypal
+
+                    "credit card" ->
+                        D.succeed CreditCard
+
+                    "rewards" ->
+                        D.succeed Rewards
+
+                    another ->
+                        D.succeed OtherSubType
+            )
+
+
 type Accounts
     = Accounts (List Account)
 
@@ -119,8 +194,8 @@ accountsDecoder =
 type alias Account =
     { name : String
     , id : String
-    , aType : String
-    , subtype : String
+    , theType : AccountType
+    , subType : AccountSubType
     , mask : String
     }
 
@@ -129,11 +204,11 @@ accountDecoder : Decoder Account
 accountDecoder =
     D.map5
         Account
-        (D.at [ "name" ] D.string)
-        (D.at [ "id" ] D.string)
-        (D.at [ "type" ] D.string)
-        (D.at [ "subtype" ] D.string)
-        (D.at [ "mask" ] D.string)
+        (D.field "name" D.string)
+        (D.field "id" D.string)
+        (D.field "type" accountTypeDecoder)
+        (D.field "subtype" accountSubTypeDecoder)
+        (D.field "mask" D.string)
 
 
 type alias Institution =
@@ -146,8 +221,8 @@ institutionDecoder : Decoder Institution
 institutionDecoder =
     D.map2
         Institution
-        (D.at [ "name" ] D.string)
-        (D.at [ "institution_id" ] D.string)
+        (D.field "name" D.string)
+        (D.field "institution_id" D.string)
 
 
 type alias Item =
