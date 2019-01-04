@@ -85,6 +85,7 @@ type Msg
     | DepositInto String
     | ShowInformPickTransactions
     | ShowPickTransactionsAccounts
+    | ShowFinish
 
 
 
@@ -311,6 +312,11 @@ update msg model =
             , Cmd.none
             )
 
+        ShowFinish ->
+            ( Debug.log "item" { model | stage = Finish }
+            , Cmd.none
+            )
+
 
 
 -- VIEW
@@ -408,7 +414,7 @@ pickTransactionsAccountsView model =
                     (List.concat
                         [ [ Grid.row [] [ Grid.col [ Col.lg, Col.textAlign Text.alignXsRight ] [ text "Transactions" ] ] ]
                         , institutionRowsForTransactionSelection model
-                        , [ Grid.row [] [ Grid.col [] [ Button.button [ Button.primary ] [ text "Finish" ] ] ] ]
+                        , [ Grid.row [] [ Grid.col [] [ Button.button [ Button.primary, Button.onClick ShowFinish ] [ text "Finish" ] ] ] ]
                         ]
                     )
             ]
