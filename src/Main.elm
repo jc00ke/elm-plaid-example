@@ -347,7 +347,7 @@ pickDepositoryAccountView model =
                 Grid.container []
                     (List.concat
                         [ [ Grid.row [] [ Grid.col [ Col.xs3 ] [ text "Deposit Into" ], Grid.col [] [] ] ]
-                        , institutionRowForDepositorySelection model
+                        , institutionRowsForDepositorySelection model.items
                         , [ Grid.row [] [ Grid.col [] [ Button.button [ Button.secondary ] [ text "Link another bank" ] ], Grid.col [] [ Button.button [ Button.primary ] [ text "Next" ] ] ] ]
                         ]
                     )
@@ -401,24 +401,43 @@ enrollingText model =
     Block.titleH3 [] [ "Enrolling " ++ model.name |> text ]
 
 
-institutionRowForDepositorySelection : model -> List (Html Msg)
-institutionRowForDepositorySelection model =
-    [ Grid.row []
-        [ Grid.col []
-            [ h4 [ class "card-title" ] [ text "Platypus Bank" ] ]
+institutionRowsForDepositorySelection : List Item -> List (Html Msg)
+institutionRowsForDepositorySelection items =
+    List.concatMap institutionRowForDepositorySelection items
+
+
+institutionRowForDepositorySelection : Item -> List (Html Msg)
+institutionRowForDepositorySelection item =
+    let
+        rows =
+            accountRowsForDepositorySelection item.accounts
+    in
+    List.concat
+        [ [ Grid.row []
+                [ Grid.col []
+                    [ h4 [ class "card-title" ] [ text item.institution.name ] ]
+                ]
+          ]
+        , rows
         ]
-    , Grid.row [ Row.leftSm ]
+
+
+accountRowsForDepositorySelection : List Account -> List (Html Msg)
+accountRowsForDepositorySelection accounts =
+    let
+        depositoryAccounts =
+            List.filter (\account -> account.theType == Depository) accounts
+    in
+    List.concatMap accountRowForDepositorySelection depositoryAccounts
+
+
+accountRowForDepositorySelection : Account -> List (Html Msg)
+accountRowForDepositorySelection account =
+    [ Grid.row [ Row.leftSm ]
         [ Grid.col [ Col.xs3 ] [ Radio.radio [ Radio.name "depository" ] "" ]
         , Grid.col [ Col.textAlign Text.alignXsLeft ]
-            [ h5 [] [ text "My Checking" ]
-            , h6 [ class "mask" ] [ text "************0102" ]
-            ]
-        ]
-    , Grid.row [ Row.leftSm ]
-        [ Grid.col [ Col.xs3 ] [ Radio.radio [ Radio.name "depository" ] "" ]
-        , Grid.col [ Col.textAlign Text.alignXsLeft ]
-            [ h5 [] [ text "My Savings" ]
-            , h6 [ class "mask" ] [ text "************3030" ]
+            [ h5 [] [ text account.name ]
+            , h6 [ class "mask" ] [ text <| "************" ++ account.mask ]
             ]
         ]
     ]
