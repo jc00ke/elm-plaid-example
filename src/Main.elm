@@ -469,10 +469,10 @@ accountRowForDepositorySelection account model =
             else
                 defaultRowClasses
     in
-    [ Grid.row [ Row.leftSm, Row.attrs [ class class_, onClick (DepositInto account.id) ] ]
+    [ Grid.row [ Row.leftSm, Row.attrs [ class class_ ] ]
         [ Grid.col [ Col.xs3 ] [ Radio.radio [ Radio.name "depository", Radio.onClick (DepositInto account.id) ] "" ]
         , Grid.col [ Col.textAlign Text.alignXsLeft ]
-            [ h5 [ onClick (DepositInto account.id) ] [ text account.name ]
+            [ h5 [] [ text account.name ]
             , h6 [ class "mask" ] [ text <| "************" ++ account.mask ]
             ]
         ]
