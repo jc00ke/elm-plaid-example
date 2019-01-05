@@ -40,8 +40,7 @@ type alias Model =
     { items : List Item
     , name : String
     , stage : Stage
-    , depositInto : String
-    , nextEnabled : Bool
+    , depositInto : Maybe String
     }
 
 
@@ -50,8 +49,7 @@ initialModel =
     { items = []
     , name = ""
     , stage = Start
-    , depositInto = ""
-    , nextEnabled = False
+    , depositInto = Nothing
     }
 
 
@@ -287,10 +285,10 @@ update msg model =
                     )
 
         OpenPlaidLink products ->
-            ( { model | nextEnabled = False }, openPlaidLink (encodeProducts products) )
+            ( model, openPlaidLink (encodeProducts products) )
 
         DepositInto accountId ->
-            ( { model | depositInto = accountId, nextEnabled = True }, Cmd.none )
+            ( { model | depositInto = Just accountId }, Cmd.none )
 
         ShowLinkAnotherBank ->
             let
@@ -356,6 +354,15 @@ startView model =
 
 pickDepositoryAccountView : Model -> Html Msg
 pickDepositoryAccountView model =
+    let
+        disabled =
+            case model.depositInto of
+                Nothing ->
+                    True
+
+                Just _ ->
+                    False
+    in
     Card.config [ Card.align Text.alignXsCenter ]
         |> Card.block []
             [ enrollingText model
@@ -364,7 +371,7 @@ pickDepositoryAccountView model =
                     (List.concat
                         [ institutionRowsForDepositorySelection model
                         , [ Grid.row []
-                                [ Grid.col [] [ Button.button [ Button.primary, Button.disabled (not model.nextEnabled), Button.onClick ShowLinkAnotherBank ] [ text "Next" ] ]
+                                [ Grid.col [] [ Button.button [ Button.primary, Button.disabled disabled, Button.onClick ShowLinkAnotherBank ] [ text "Next" ] ]
                                 ]
                           ]
                         ]
@@ -434,7 +441,7 @@ accountRowForDepositorySelection : Account -> Model -> List (Html Msg)
 accountRowForDepositorySelection account model =
     let
         chosen =
-            account.id == model.depositInto
+            Just account.id == model.depositInto
 
         defaultRowClasses =
             "m-3 p-2 pointer"
