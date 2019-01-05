@@ -1,4 +1,4 @@
-port module Main exposing (Model, Msg(..), init, initialModel, itemLinked, main, openPlaidLink, subscriptions, update, userDecoder, view)
+port module Main exposing (Model, Msg(..), init, initialModel, itemLinked, main, openPlaidLink, subscriptions, update, view)
 
 import Bootstrap.Alert as Alert
 import Bootstrap.Button as Button
@@ -12,11 +12,14 @@ import Bootstrap.Grid.Col as Col
 import Bootstrap.Grid.Row as Row
 import Bootstrap.Text as Text
 import Browser
+import Decoders exposing (itemDecoder)
+import Encoders exposing (encodeProducts)
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (onClick)
-import Json.Decode as D exposing (Decoder, map)
+import Json.Decode exposing (Error, decodeValue)
 import Json.Encode as E
+import Models exposing (..)
 
 
 
@@ -30,6 +33,14 @@ main =
         , update = update
         , view = view
         }
+
+
+type Msg
+    = OpenPlaidLink (List Product)
+    | GotItem (Result Error Item)
+    | DepositInto String
+    | ShowLinkAnotherBank
+    | ShowFinish
 
 
 
@@ -74,193 +85,7 @@ port itemLinked : (E.Value -> msg) -> Sub msg
 
 subscriptions : Model -> Sub Msg
 subscriptions _ =
-    itemLinked (D.decodeValue itemDecoder >> GotItem)
-
-
-type Msg
-    = OpenPlaidLink (List Product)
-    | GotItem (Result D.Error Item)
-    | DepositInto String
-    | ShowLinkAnotherBank
-    | ShowFinish
-
-
-
--- ROUTES
-
-
-type Stage
-    = Start
-    | PickDepositoryAccount
-    | LinkAnotherBank
-    | Finish
-
-
-
--- TYPES
-
-
-type Product
-    = Auth
-    | Transactions
-
-
-
--- DECODERS & TYPES
-
-
-userDecoder : Decoder String
-userDecoder =
-    D.field "name" D.string
-
-
-type AccountType
-    = Depository
-    | Credit
-    | Brokerage
-    | Loan
-    | OtherType
-
-
-accountTypeDecoder : Decoder AccountType
-accountTypeDecoder =
-    D.string
-        |> D.andThen
-            (\str ->
-                case str of
-                    "depository" ->
-                        D.succeed Depository
-
-                    "credit" ->
-                        D.succeed Credit
-
-                    "brokerage" ->
-                        D.succeed Brokerage
-
-                    "loan" ->
-                        D.succeed Loan
-
-                    other ->
-                        D.succeed OtherType
-            )
-
-
-type AccountSubType
-    = CD
-    | Checking
-    | Savings
-    | MoneyMarket
-    | Paypal
-    | Prepaid
-    | CreditCard
-    | Rewards
-    | OtherSubType
-
-
-accountSubTypeDecoder : Decoder AccountSubType
-accountSubTypeDecoder =
-    D.string
-        |> D.andThen
-            (\str ->
-                case str of
-                    "cd" ->
-                        D.succeed CD
-
-                    "checking" ->
-                        D.succeed Checking
-
-                    "savings" ->
-                        D.succeed Savings
-
-                    "money market" ->
-                        D.succeed MoneyMarket
-
-                    "paypal" ->
-                        D.succeed Paypal
-
-                    "credit card" ->
-                        D.succeed CreditCard
-
-                    "rewards" ->
-                        D.succeed Rewards
-
-                    another ->
-                        D.succeed OtherSubType
-            )
-
-
-type Accounts
-    = Accounts (List Account)
-
-
-accountsDecoder : Decoder (List Account)
-accountsDecoder =
-    D.list accountDecoder
-
-
-type alias Account =
-    { name : String
-    , id : String
-    , type_ : AccountType
-    , subType : AccountSubType
-    , mask : String
-    }
-
-
-accountDecoder : Decoder Account
-accountDecoder =
-    D.map5
-        Account
-        (D.field "name" D.string)
-        (D.field "id" D.string)
-        (D.field "type" accountTypeDecoder)
-        (D.field "subtype" accountSubTypeDecoder)
-        (D.field "mask" D.string)
-
-
-type alias Institution =
-    { name : String
-    , id : String
-    }
-
-
-institutionDecoder : Decoder Institution
-institutionDecoder =
-    D.map2
-        Institution
-        (D.field "name" D.string)
-        (D.field "institution_id" D.string)
-
-
-type alias Item =
-    { public_token : String
-    , institution : Institution
-    , accounts : List Account
-    }
-
-
-itemDecoder : Decoder Item
-itemDecoder =
-    D.map3
-        Item
-        (D.field "public_token" D.string)
-        (D.field "institution" institutionDecoder)
-        (D.field "accounts" accountsDecoder)
-
-
-encodeProduct : Product -> E.Value
-encodeProduct product =
-    case product of
-        Auth ->
-            E.string "auth"
-
-        Transactions ->
-            E.string "transactions"
-
-
-encodeProducts : List Product -> E.Value
-encodeProducts products =
-    E.list encodeProduct products
+    itemLinked (decodeValue itemDecoder >> GotItem)
 
 
 
