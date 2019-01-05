@@ -95,8 +95,6 @@ type Msg
 type Stage
     = Start
     | PickDepositoryAccount
-    | InformPickTransactions
-    | PickTransactionsAccounts
     | Finish
 
 
@@ -342,12 +340,6 @@ viewFor model =
         PickDepositoryAccount ->
             pickDepositoryAccountView model
 
-        InformPickTransactions ->
-            informPickTransactionsView model
-
-        PickTransactionsAccounts ->
-            pickTransactionsAccountsView model
-
         Finish ->
             finishView model
 
@@ -376,45 +368,13 @@ pickDepositoryAccountView model =
             , Block.custom <|
                 Grid.container []
                     (List.concat
-                        [ [ Grid.row [] [ Grid.col [ Col.xs3 ] [ text "Deposit Into" ], Grid.col [] [] ] ]
-                        , institutionRowsForDepositorySelection model
+                        [ institutionRowsForDepositorySelection model
                         , [ Grid.row []
                                 [ Grid.col []
                                     [ Button.button [ Button.secondary, Button.onClick <| OpenPlaidLink [ Transactions ] ] [ text "Link another bank" ] ]
                                 , Grid.col [] [ Button.button [ Button.primary, Button.disabled (not model.nextEnabled), Button.onClick ShowInformPickTransactions ] [ text "Next" ] ]
                                 ]
                           ]
-                        ]
-                    )
-            ]
-        |> Card.view
-
-
-informPickTransactionsView : Model -> Html Msg
-informPickTransactionsView model =
-    Card.config [ Card.align Text.alignXsCenter ]
-        |> Card.block []
-            [ enrollingText model
-            , Block.text [] [ text "On the next screen, please select which accounts you want to share\ntransaction information with." ]
-            , Block.custom <|
-                Button.button
-                    [ Button.primary, Button.attrs [ onClick ShowPickTransactionsAccounts ] ]
-                    [ text "Next" ]
-            ]
-        |> Card.view
-
-
-pickTransactionsAccountsView : Model -> Html Msg
-pickTransactionsAccountsView model =
-    Card.config [ Card.align Text.alignXsCenter ]
-        |> Card.block []
-            [ enrollingText model
-            , Block.custom <|
-                Grid.container []
-                    (List.concat
-                        [ [ Grid.row [] [ Grid.col [ Col.lg, Col.textAlign Text.alignXsRight ] [ text "Transactions" ] ] ]
-                        , institutionRowsForTransactionSelection model
-                        , [ Grid.row [] [ Grid.col [] [ Button.button [ Button.primary, Button.onClick ShowFinish ] [ text "Finish" ] ] ] ]
                         ]
                     )
             ]
@@ -466,7 +426,10 @@ accountRowForDepositorySelection : Account -> Model -> List (Html Msg)
 accountRowForDepositorySelection account model =
     let
         chosen =
-            isDepositAccount account model
+            account.id == model.depositInto
+
+        defaultRowClasses =
+            "m-3 p-2 pointer"
 
         class_ =
             if chosen then
@@ -475,77 +438,13 @@ accountRowForDepositorySelection account model =
             else
                 defaultRowClasses
     in
-    [ Grid.row [ Row.leftSm, Row.attrs [ class class_ ] ]
-        [ Grid.col [ Col.xs3 ] [ Radio.radio [ Radio.name "depository", Radio.onClick (DepositInto account.id) ] "" ]
-        , Grid.col [ Col.textAlign Text.alignXsLeft ]
+    [ Grid.row [ Row.leftSm, Row.attrs [ class class_, onClick (DepositInto account.id) ] ]
+        [ Grid.col [ Col.textAlign Text.alignXsLeft ]
             [ h5 [] [ text account.name ]
             , h6 [ class "mask" ] [ text <| "************" ++ account.mask ]
             ]
         ]
     ]
-
-
-institutionRowsForTransactionSelection : Model -> List (Html Msg)
-institutionRowsForTransactionSelection model =
-    List.concatMap (\item -> institutionRowForTransactionSelection item model) model.items
-
-
-institutionRowForTransactionSelection : Item -> Model -> List (Html Msg)
-institutionRowForTransactionSelection item model =
-    let
-        rows =
-            accountRowsForTransactionSelection item.accounts model
-    in
-    List.concat
-        [ [ Grid.row [] [ Grid.col [] [ h4 [ class "card-title" ] [ text item.institution.name ] ] ] ]
-        , rows
-        ]
-
-
-accountRowsForTransactionSelection : List Account -> Model -> List (Html Msg)
-accountRowsForTransactionSelection accounts model =
-    List.concatMap (\account -> accountRowForTransactionSelection account model) accounts
-
-
-accountRowForTransactionSelection : Account -> Model -> List (Html Msg)
-accountRowForTransactionSelection account model =
-    let
-        chosen =
-            isDepositAccount account model
-
-        marker =
-            if chosen then
-                "depositing into"
-
-            else
-                ""
-
-        class_ =
-            if chosen then
-                "bg-light rounded shadow " ++ defaultRowClasses
-
-            else
-                defaultRowClasses
-    in
-    [ Grid.row [ Row.leftSm, Row.attrs [ class class_ ] ]
-        [ Grid.col [ Col.xs3 ] [ text <| marker ]
-        , Grid.col [ Col.textAlign Text.alignXsLeft ]
-            [ h5 [] [ text account.name ]
-            , h6 [ class "mask" ] [ text <| "************" ++ account.mask ]
-            ]
-        , Grid.col [ Col.xs3 ] [ Checkbox.checkbox [ Checkbox.id "transactions" ] "" ]
-        ]
-    ]
-
-
-defaultRowClasses : String
-defaultRowClasses =
-    "m-2 p-2"
-
-
-isDepositAccount : Account -> Model -> Bool
-isDepositAccount account model =
-    account.id == model.depositInto
 
 
 nextStage : Stage -> Stage
@@ -555,12 +454,6 @@ nextStage stage =
             PickDepositoryAccount
 
         PickDepositoryAccount ->
-            InformPickTransactions
-
-        InformPickTransactions ->
-            PickTransactionsAccounts
-
-        PickTransactionsAccounts ->
             Finish
 
         Finish ->
