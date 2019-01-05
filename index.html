@@ -50,8 +50,6 @@
           return {
             products: products,
             open: function() {
-              console.log(self.metadata)
-              console.log("products: ", this.products)
               self.app.ports.itemLinked.send(self.metadata)
             },
             onSuccess: function(public_token, metadata) {

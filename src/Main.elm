@@ -83,8 +83,7 @@ type Msg
     = OpenPlaidLink (List Product)
     | GotItem (Result D.Error Item)
     | DepositInto String
-    | ShowInformPickTransactions
-    | ShowPickTransactionsAccounts
+    | ShowLinkAnotherBank
     | ShowFinish
 
 
@@ -95,6 +94,7 @@ type Msg
 type Stage
     = Start
     | PickDepositoryAccount
+    | LinkAnotherBank
     | Finish
 
 
@@ -287,21 +287,12 @@ update msg model =
                     )
 
         OpenPlaidLink products ->
-            ( { model | nextEnabled = False }, openPlaidLink (encodeProducts [ Auth, Transactions ]) )
+            ( { model | nextEnabled = False }, openPlaidLink (encodeProducts products) )
 
         DepositInto accountId ->
             ( { model | depositInto = accountId, nextEnabled = True }, Cmd.none )
 
-        ShowInformPickTransactions ->
-            let
-                stage =
-                    nextStage model.stage
-            in
-            ( Debug.log "item" { model | stage = stage }
-            , Cmd.none
-            )
-
-        ShowPickTransactionsAccounts ->
+        ShowLinkAnotherBank ->
             let
                 stage =
                     nextStage model.stage
@@ -340,6 +331,9 @@ viewFor model =
         PickDepositoryAccount ->
             pickDepositoryAccountView model
 
+        LinkAnotherBank ->
+            linkAnotherBankView model
+
         Finish ->
             finishView model
 
@@ -370,13 +364,27 @@ pickDepositoryAccountView model =
                     (List.concat
                         [ institutionRowsForDepositorySelection model
                         , [ Grid.row []
-                                [ Grid.col []
-                                    [ Button.button [ Button.secondary, Button.onClick <| OpenPlaidLink [ Transactions ] ] [ text "Link another bank" ] ]
-                                , Grid.col [] [ Button.button [ Button.primary, Button.disabled (not model.nextEnabled), Button.onClick ShowInformPickTransactions ] [ text "Next" ] ]
+                                [ Grid.col [] [ Button.button [ Button.primary, Button.disabled (not model.nextEnabled), Button.onClick ShowLinkAnotherBank ] [ text "Next" ] ]
                                 ]
                           ]
                         ]
                     )
+            ]
+        |> Card.view
+
+
+linkAnotherBankView : Model -> Html Msg
+linkAnotherBankView model =
+    Card.config [ Card.align Text.alignXsCenter ]
+        |> Card.block []
+            [ enrollingText model
+            , Block.custom <|
+                Grid.container []
+                    [ Grid.row []
+                        [ Grid.col [] [ Button.button [ Button.primary, Button.onClick <| OpenPlaidLink [ Transactions ] ] [ text "Link another bank" ] ]
+                        , Grid.col [] [ Button.button [ Button.primary, Button.onClick ShowFinish ] [ text "Finish" ] ]
+                        ]
+                    ]
             ]
         |> Card.view
 
@@ -454,6 +462,9 @@ nextStage stage =
             PickDepositoryAccount
 
         PickDepositoryAccount ->
+            LinkAnotherBank
+
+        LinkAnotherBank ->
             Finish
 
         Finish ->
