@@ -1,6 +1,7 @@
 port module Main exposing (Model, Msg(..), init, initialModel, itemLinked, main, openPlaidLink, subscriptions, update, view)
 
 import Bootstrap.Alert as Alert
+import Bootstrap.Badge as Badge
 import Bootstrap.Button as Button
 import Bootstrap.CDN as CDN
 import Bootstrap.Card as Card
@@ -10,7 +11,9 @@ import Bootstrap.Form.Radio as Radio
 import Bootstrap.Grid as Grid
 import Bootstrap.Grid.Col as Col
 import Bootstrap.Grid.Row as Row
+import Bootstrap.ListGroup as ListGroup
 import Bootstrap.Text as Text
+import Bootstrap.Utilities.Flex as Flex
 import Browser
 import Decoders exposing (itemDecoder)
 import Encoders exposing (encodeProducts)
@@ -207,18 +210,48 @@ pickDepositoryAccountView model =
 
 linkAnotherBankView : Model -> Html Msg
 linkAnotherBankView model =
+    let
+        list =
+            banksLinkedSoFar model.items
+    in
     Card.config [ Card.align Text.alignXsCenter ]
         |> Card.block []
             [ enrollingText model
             , Block.custom <|
                 Grid.container []
-                    [ Grid.row []
-                        [ Grid.col [] [ Button.button [ Button.primary, Button.onClick <| OpenPlaidLink [ Transactions ] ] [ text "Link another bank" ] ]
-                        , Grid.col [] [ Button.button [ Button.primary, Button.onClick ShowFinish ] [ text "Finish" ] ]
+                    (List.concat
+                        [ [ Grid.row [] [ Grid.col [] [ h4 [] [ text "You've linked: " ] ] ] ]
+                        , [ Grid.row [ Row.attrs [ class "m-3" ] ] [ Grid.col [] [ ListGroup.ul list ] ] ]
+                        , [ Grid.row []
+                                [ Grid.col [] [ Button.button [ Button.primary, Button.onClick <| OpenPlaidLink [ Transactions ] ] [ text "Link another bank" ] ]
+                                , Grid.col [] [ Button.button [ Button.primary, Button.onClick ShowFinish ] [ text "Finish" ] ]
+                                ]
+                          ]
                         ]
-                    ]
+                    )
             ]
         |> Card.view
+
+
+banksLinkedSoFar : List Item -> List (ListGroup.Item Msg)
+banksLinkedSoFar items =
+    List.concatMap
+        (\item ->
+            let
+                numberOfAccounts =
+                    item.accounts |> List.length |> String.fromInt
+
+                accountNames =
+                    List.map .name item.accounts
+
+                accounts =
+                    String.join ", " accountNames
+            in
+            [ ListGroup.li [ ListGroup.attrs [ Flex.block, Flex.justifyBetween, Flex.alignItemsCenter ] ]
+                [ text item.institution.name, Badge.pillInfo [ title accounts ] [ text numberOfAccounts ] ]
+            ]
+        )
+        items
 
 
 finishView : Model -> Html Msg
