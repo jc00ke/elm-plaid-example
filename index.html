@@ -58,6 +58,7 @@
           }
         },
         liveHandler: function(products) {
+          var self = this
           return Plaid.create({
             clientName: 'Plaid Quickstart',
             env: 'sandbox',
@@ -75,6 +76,7 @@
               // user selected and the account ID or IDs, if the
               // Select Account view is enabled.
               console.log("onSuccess", public_token, metadata)
+              self.app.ports.itemLinked.send(metadata)
             },
             onExit: function(err, metadata) {
               // The user exited the Link flow.
@@ -112,7 +114,6 @@
             "subtype": "checking",
             "mask": "0000"
           },
-          "account_id": "ZXq1VoKX7qC1PK4xvl56cdXQM4dgXaigw33kk",
           "accounts": [
             {
               "id": "ZXq1VoKX7qC1PK4xvl56cdXQM4dgXaigw33kk",
