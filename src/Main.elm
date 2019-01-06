@@ -106,7 +106,11 @@ update msg model =
                 Just a ->
                     let
                         stage =
-                            nextStage model.stage
+                            if List.length model.items == 0 then
+                                nextStage model.stage
+
+                            else
+                                model.stage
                     in
                     ( Debug.log "item" { model | items = List.append model.items [ a ], stage = stage }
                     , Cmd.none
